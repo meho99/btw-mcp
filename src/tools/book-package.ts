@@ -1,29 +1,24 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import z from "zod";
+import { sessions } from "../session";
 
 export const registerBookPackageTool = (server: McpServer) => {
   server.registerTool(
     "book package",
     {
       title: "Book Package",
-      description: "Book a selecting hunting package on Book The Wild",
+      description: "Book a selected hunting package on Book The Wild",
       inputSchema: {
         bookingDate: z.string(),
-        apiToken: z.string().optional(),
       },
     },
-    async ({ bookingDate, apiToken }, { requestInfo }) => {
-      // Get token from environment (set by user or auth middleware)
-      console.log("btwToken", apiToken);
-
-      console.log("Using BTW token:", apiToken);
-
-      if (!apiToken) {
+    async ({ bookingDate }, { sessionId }) => {
+      if (!sessionId || !sessions[sessionId] || !sessions[sessionId].apiToken) {
         return {
           content: [
             {
               type: "text",
-              text: `Error: No API token provided. Please log in first. Please go to http://localhost:3005/login?sessionId=${requestInfo?.headers["mcp-session-id"]}`,
+              text: `Error: User unauthorized. Please go to http://localhost:3005/login?sessionId=${sessionId} to log in.`,
             },
           ],
         };
@@ -34,7 +29,7 @@ export const registerBookPackageTool = (server: McpServer) => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiToken}`,
+          Authorization: `Bearer ${sessions[sessionId].apiToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -48,14 +43,7 @@ export const registerBookPackageTool = (server: McpServer) => {
         console.log("BTW API ERROR response:", response);
         if (response.status === 400) {
           return {
-            content: [
-              {
-                type: "text",
-                text: `Error: Bad Request - ${
-                  parsedResponse.message || "Unknown error"
-                }`,
-              },
-            ],
+            content: [{ type: "text", text: `BTW API error` }],
             structuredContent: { error: parsedResponse },
           };
         }

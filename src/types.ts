@@ -14,5 +14,6 @@ export type PrismaCrudQuery = {
 
 export type SessionData = {
   apiToken?: string;
+  loginEmail?: string;
   transport: StreamableHTTPServerTransport;
 };

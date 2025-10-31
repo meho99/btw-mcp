@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import z from "zod";
-import { parseCrudQuery } from "./parsers";
-import { PrismaCrudQuery } from "./types";
+import { parseCrudQuery } from "../parsers";
+import { PrismaCrudQuery } from "../types";
 
 export const registerFindHuntsTool = (server: McpServer) => {
   server.registerTool(

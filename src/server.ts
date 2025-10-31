@@ -1,12 +1,9 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import express from "express";
-import { registerFindHuntsTool } from "./find-hunts";
 import {
   getOrCreateSessionTransport,
   handleSessionRequest,
   sessions,
 } from "./session";
-import { registerBookPackageTool } from "./book-package";
 
 const app = express();
 app.use(express.json());
@@ -18,7 +15,7 @@ app.post("/mcp", async (req, res) => {
     console.log("=== Incoming MCP Request ===");
     console.log("Timestamp:", new Date().toISOString());
     console.log("Method:", req.body?.method || "unknown");
-    console.log("Headers:", req.headers["mcp-session-id"]);
+    console.log("Session id:", req.headers["mcp-session-id"]);
     if (req.body?.params) {
       console.log("Parameters:", JSON.stringify(req.body.params, null, 2));
     }
@@ -38,13 +35,7 @@ app.post("/mcp", async (req, res) => {
       return;
     }
 
-    const { transport, apiToken } = session;
-
-    if (req.body.params?.arguments) {
-      req.body.params.arguments.apiToken = apiToken;
-    }
-
-    console.log("server connected", req.body);
+    const { transport } = session;
 
     // Handle the request with the transport
     await transport.handleRequest(req, res, req.body);
@@ -68,7 +59,7 @@ app.get("/login", (_req, res) => {
 
   res.send(`
     <form method="POST" action="/login">
-      <input name="username" placeholder="username"/>
+      <input name="email" placeholder="email"/>
       <input name="password" placeholder="password" type="password"/>
       <input type="hidden" name="sessionId" value="${sessionId}"/>
       <button type="submit">Login</button>
@@ -77,7 +68,7 @@ app.get("/login", (_req, res) => {
 });
 
 app.post("/login", express.urlencoded({ extended: true }), (req, res) => {
-  const { username, sessionId } = req.body;
+  const { email, sessionId } = req.body;
 
   const fakeToken = `eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyOTc0MSwicm9sZSI6ImN1c3RvbWVyIn0.R3xhdX5jbUGu0ZhUr0LXm32h8VB0AN4jlbpClmI7MdI`;
 
@@ -85,11 +76,12 @@ app.post("/login", express.urlencoded({ extended: true }), (req, res) => {
     res.status(400).send("Invalid session ID");
   }
   sessions[sessionId].apiToken = fakeToken;
+  sessions[sessionId].loginEmail = email;
 
-  console.log("User logged in:", username, "for session ID:", sessionId);
+  console.log("User logged in:", email, "for session ID:", sessionId);
 
   res.send(`
-    <p>Login successful for user: ${username}</p>
+    <p>Login successful for user: ${email}</p>
     <p>You can now return to the chat interface.</p>
   `);
 });
