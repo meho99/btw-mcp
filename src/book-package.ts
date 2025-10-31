@@ -9,21 +9,21 @@ export const registerBookPackageTool = (server: McpServer) => {
       description: "Book a selecting hunting package on Book The Wild",
       inputSchema: {
         bookingDate: z.string(),
-        btwToken: z.string().optional(),
+        apiToken: z.string().optional(),
       },
     },
-    async ({ bookingDate, btwToken }, { requestInfo }) => {
+    async ({ bookingDate, apiToken }, { requestInfo }) => {
       // Get token from environment (set by user or auth middleware)
-      console.log("btwToken", btwToken);
+      console.log("btwToken", apiToken);
 
-      console.log("Using BTW token:", btwToken);
+      console.log("Using BTW token:", apiToken);
 
-      if (!btwToken) {
+      if (!apiToken) {
         return {
           content: [
             {
               type: "text",
-              text: `Error: No API token provided. Please log in first. Please go to /login?sessionId=${requestInfo?.headers["mcp-session-id"]}`,
+              text: `Error: No API token provided. Please log in first. Please go to http://localhost:3005/login?sessionId=${requestInfo?.headers["mcp-session-id"]}`,
             },
           ],
         };
@@ -34,31 +34,44 @@ export const registerBookPackageTool = (server: McpServer) => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${btwToken}`,
+          Authorization: `Bearer ${apiToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          bookingDate,
+          bookingDate: new Date(bookingDate).toISOString(),
         }),
       });
 
+      const parsedResponse = await response.json();
+
       if (!response.ok) {
         console.log("BTW API ERROR response:", response);
+        if (response.status === 400) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error: Bad Request - ${
+                  parsedResponse.message || "Unknown error"
+                }`,
+              },
+            ],
+            structuredContent: { error: parsedResponse },
+          };
+        }
         throw new Error(
           `BTW API error: ${response.status} ${response.statusText}`
         );
       }
 
-      const addedBooking = await response.json();
-
       return {
         content: [
           {
             type: "text",
-            text: `Successfully booked package on ${bookingDate}. Booking ID: ${addedBooking.id}`,
+            text: `Successfully booked package on ${bookingDate}. Booking ID: ${parsedResponse.id}`,
           },
         ],
-        structuredContent: addedBooking,
+        structuredContent: parsedResponse,
       };
     }
   );

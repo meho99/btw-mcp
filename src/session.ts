@@ -4,6 +4,8 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types";
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import { SessionData } from "./types";
+import { registerFindHuntsTool } from "./find-hunts";
+import { registerBookPackageTool } from "./book-package";
 
 // Map to store transports by session ID
 export const sessions: {
@@ -11,7 +13,6 @@ export const sessions: {
 } = {};
 
 export const getOrCreateSessionTransport = async (
-  server: McpServer,
   req: Request
 ): Promise<SessionData | undefined> => {
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
@@ -26,6 +27,7 @@ export const getOrCreateSessionTransport = async (
     console.log("Creating new transport for initialization request");
     // New initialization request
     const transport = new StreamableHTTPServerTransport({
+      enableJsonResponse: true,
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (newSessionId) => {
         console.log("Session initialized with ID:", newSessionId);
@@ -47,7 +49,16 @@ export const getOrCreateSessionTransport = async (
       }
     };
 
-    // Connect to the MCP server
+    // Create MCP server
+    const server = new McpServer({
+      name: "btw-hunts-finder",
+      version: "1.0.0",
+    });
+
+    // Register tools
+    registerFindHuntsTool(server);
+    registerBookPackageTool(server);
+
     await server.connect(transport);
 
     return { transport };

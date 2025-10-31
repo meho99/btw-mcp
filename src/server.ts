@@ -8,16 +8,6 @@ import {
 } from "./session";
 import { registerBookPackageTool } from "./book-package";
 
-// Create MCP server
-const server = new McpServer({
-  name: "btw-hunts-finder",
-  version: "1.0.0",
-});
-
-// Register tools
-registerFindHuntsTool(server);
-registerBookPackageTool(server);
-
 const app = express();
 app.use(express.json());
 
@@ -28,18 +18,13 @@ app.post("/mcp", async (req, res) => {
     console.log("=== Incoming MCP Request ===");
     console.log("Timestamp:", new Date().toISOString());
     console.log("Method:", req.body?.method || "unknown");
-    console.log(
-      "Headers:",
-      req.headers["mcp-session-id"]
-        ? `Session: ${req.headers["mcp-session-id"]}`
-        : "No session"
-    );
+    console.log("Headers:", req.headers["mcp-session-id"]);
     if (req.body?.params) {
       console.log("Parameters:", JSON.stringify(req.body.params, null, 2));
     }
     console.log("=== End Request Log ===\n");
 
-    const session = await getOrCreateSessionTransport(server, req);
+    const session = await getOrCreateSessionTransport(req);
     if (!session) {
       console.log("Failed to create or find session");
       res.status(400).json({
@@ -55,13 +40,14 @@ app.post("/mcp", async (req, res) => {
 
     const { transport, apiToken } = session;
 
-    console.log("transport", transport);
+    if (req.body.params?.arguments) {
+      req.body.params.arguments.apiToken = apiToken;
+    }
+
+    console.log("server connected", req.body);
 
     // Handle the request with the transport
-    await transport.handleRequest(req, res, {
-      ...req.body,
-      // btwToken: apiToken,
-    });
+    await transport.handleRequest(req, res, req.body);
   } catch (error) {
     console.error("Error handling MCP request:", error);
     res.status(500).json({
@@ -93,7 +79,7 @@ app.get("/login", (_req, res) => {
 app.post("/login", express.urlencoded({ extended: true }), (req, res) => {
   const { username, sessionId } = req.body;
 
-  const fakeToken = `fake-token-for-${username}`;
+  const fakeToken = `eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyOTc0MSwicm9sZSI6ImN1c3RvbWVyIn0.R3xhdX5jbUGu0ZhUr0LXm32h8VB0AN4jlbpClmI7MdI`;
 
   if (!sessions[sessionId]) {
     res.status(400).send("Invalid session ID");
