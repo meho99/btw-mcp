@@ -3,7 +3,7 @@ import { sessions } from "../session";
 
 export const registerLogOutTool = (server: McpServer) => {
   server.registerTool(
-    "log out",
+    "log-out",
     {
       title: "Log Out User",
       description: "Log out the currently logged-in user",

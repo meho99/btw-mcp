@@ -3,7 +3,7 @@ import { sessions } from "../session";
 
 export const registerGetUserTool = (server: McpServer) => {
   server.registerTool(
-    "get user",
+    "get-user",
     {
       title: "Get User Information",
       description: "Retrieve information about the logged-in user",

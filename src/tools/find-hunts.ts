@@ -5,10 +5,10 @@ import { PrismaCrudQuery } from "../types";
 
 export const registerFindHuntsTool = (server: McpServer) => {
   server.registerTool(
-    "find hunts",
+    "find-hunts",
     {
       title: "Find Hunts on Book The Wild",
-      description: "Search for hunting packages on Book The Wild",
+      description: `Search for hunting packages on Book The Wild. You can filter by date range. To book some hunt, first find available packages using the "get hunt details" tool.`,
       inputSchema: {
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),

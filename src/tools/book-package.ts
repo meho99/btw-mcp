@@ -4,15 +4,21 @@ import { sessions } from "../session";
 
 export const registerBookPackageTool = (server: McpServer) => {
   server.registerTool(
-    "book package",
+    "book-package",
     {
       title: "Book Package",
       description: "Book a selected hunting package on Book The Wild",
       inputSchema: {
         bookingDate: z.string(),
+        huntId: z.string(),
+        packageId: z.string(),
+        numberOfGuests: z.number(),
       },
     },
-    async ({ bookingDate }, { sessionId }) => {
+    async (
+      { bookingDate, huntId, packageId, numberOfGuests },
+      { sessionId }
+    ) => {
       if (!sessionId || !sessions[sessionId] || !sessions[sessionId].apiToken) {
         return {
           content: [
@@ -34,6 +40,10 @@ export const registerBookPackageTool = (server: McpServer) => {
         },
         body: JSON.stringify({
           bookingDate: new Date(bookingDate).toISOString(),
+          additionalServices: [],
+          huntId,
+          packageId,
+          numberOfGuests,
         }),
       });
 
