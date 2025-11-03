@@ -47,16 +47,14 @@ export class FindHuntsTool {
           };
         }
 
-        const huntsList = await response.json();
-
         return {
           content: [
             {
               type: "text",
-              text: `Found ${huntsList.totalRecords} hunts`,
+              text: `Found ${parsedResponse.totalRecords} hunts`,
             },
           ],
-          structuredContent: huntsList,
+          structuredContent: parsedResponse,
         };
       }
     );
