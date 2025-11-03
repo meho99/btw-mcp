@@ -50,6 +50,7 @@ export const registerBookPackageTool = (server: McpServer) => {
       const parsedResponse = await response.json();
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.log("BTW API ERROR response:", response);
         if (response.status === 400) {
           return {

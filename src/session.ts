@@ -26,7 +26,7 @@ export const getOrCreateSessionTransport = async (
     const transport = new StreamableHTTPServerTransport({
       enableJsonResponse: true,
       sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (newSessionId) => {
+      onsessioninitialized: newSessionId => {
         console.log("Session initialized with ID:", newSessionId);
         sessions[newSessionId] = { transport };
       },

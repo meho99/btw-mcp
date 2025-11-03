@@ -98,7 +98,7 @@ app
   .listen(port, () => {
     console.log(`BTW hunts MCP Server running on http://localhost:${port}/mcp`);
   })
-  .on("error", (error) => {
+  .on("error", error => {
     console.error("Server error:", error);
     process.exit(1);
   });

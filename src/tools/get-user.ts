@@ -9,7 +9,7 @@ export const registerGetUserTool = (server: McpServer) => {
       description: "Retrieve information about the logged-in user",
       inputSchema: {},
     },
-    async ({}, { sessionId }) => {
+    async (_args, { sessionId }) => {
       if (!sessionId || !sessions[sessionId]) {
         return {
           content: [

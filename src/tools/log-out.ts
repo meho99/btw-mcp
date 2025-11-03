@@ -9,7 +9,7 @@ export const registerLogOutTool = (server: McpServer) => {
       description: "Log out the currently logged-in user",
       inputSchema: {},
     },
-    async ({}, { sessionId }) => {
+    async (_args, { sessionId }) => {
       if (!sessionId || !sessions[sessionId]) {
         return {
           content: [
