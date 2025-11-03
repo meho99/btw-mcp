@@ -1,60 +1,64 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import z from "zod";
+import { findHunts } from "../api/find-hunts";
 import { parseCrudQuery } from "../parsers";
 import { PrismaCrudQuery } from "../types";
 
-export const registerFindHuntsTool = (server: McpServer) => {
-  server.registerTool(
-    "find-hunts",
-    {
-      title: "Find Hunts on Book The Wild",
-      description: `Search for hunting packages on Book The Wild. You can filter by date range. To book some hunt, first find available packages using the "get hunt details" tool.`,
-      inputSchema: {
-        dateFrom: z.string().optional(),
-        dateTo: z.string().optional(),
-      },
-    },
-    async ({ dateFrom, dateTo }) => {
-      const query: PrismaCrudQuery = { where: {} };
+export class FindHuntsTool {
+  static toolName = "find-hunts" as const;
+  static inputSchema = {
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+  };
 
-      if (dateFrom) {
-        query.where.start_date = {
-          equals: new Date(dateFrom).toISOString(),
+  static register(server: McpServer) {
+    server.registerTool(
+      this.toolName,
+      {
+        title: "Find Hunts on Book The Wild",
+        description: `Search for hunting packages on Book The Wild. You can filter by date range. To book some hunt, first find available packages using the "get hunt details" tool.`,
+        inputSchema: this.inputSchema,
+      },
+      async ({ dateFrom, dateTo }) => {
+        const query: PrismaCrudQuery = { where: {} };
+
+        if (dateFrom) {
+          query.where.start_date = {
+            equals: new Date(dateFrom).toISOString(),
+          };
+        }
+
+        if (dateTo) {
+          query.where.end_date = { equals: new Date(dateTo).toISOString() };
+        }
+
+        const response = await findHunts(parseCrudQuery(query));
+        const parsedResponse = await response.json();
+
+        if (!response.ok) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `BTW API error: ${response.statusText}`,
+              },
+            ],
+            structuredContent: response.status === 400 ? parsedResponse : {},
+          };
+        }
+
+        const huntsList = await response.json();
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Found ${huntsList.totalRecords} hunts`,
+            },
+          ],
+          structuredContent: huntsList,
         };
       }
-
-      if (dateTo) {
-        query.where.end_date = { equals: new Date(dateTo).toISOString() };
-      }
-
-      const url = `https://new-api.dev.bookthewild.com/api/hunts-view?${parseCrudQuery(
-        query
-      )}`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `BTW API error: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const huntsList = await response.json();
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Found ${huntsList.totalRecords} hunts`,
-          },
-        ],
-        structuredContent: huntsList,
-      };
-    }
-  );
-};
+    );
+  }
+}
