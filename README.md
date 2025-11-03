@@ -123,7 +123,6 @@ src/
 2. **Server will be available at**: `http://localhost:3005/mcp`
 
 3. **Test authentication flow**:
-
    - Use MCP client to call `get-user` tool
    - Follow the provided login URL to authenticate
    - Retry the tool call after authentication
@@ -132,16 +131,28 @@ src/
    - `npm run dev` - Development with tsx
    - `npm run dev:watch` - Development with auto-restart
    - `npm run build` - Build TypeScript to JavaScript
+   - `npm run build:clean` - Clean build directory and rebuild
    - `npm run start` - Run built JavaScript
    - `npm run start:prod` - Production start
+   - `npm run type-check` - Check TypeScript types (production only)
+   - `npm run type-check:all` - Check TypeScript types (including tests)
+   - `npm run lint` - Run ESLint
+   - `npm run lint:fix` - Fix ESLint issues automatically
+   - `npm run format` - Format code with Prettier
+   - `npm run format:check` - Check code formatting
+   - `npm run test` - Run tests in watch mode
+   - `npm run test:run` - Run tests once
+   - `npm run test:coverage` - Run tests with coverage report
 
 ## 🎉 Features
 
 - ✅ Full MCP protocol implementation with streaming HTTP transport
 - ✅ Session-based authentication with web login form
 - ✅ Five comprehensive tools for hunting package management
-- ✅ TypeScript support with proper type definitions
+- ✅ TypeScript support with proper type definitions and separate test config
 - ✅ Express.js server with proper error handling
+- ✅ ESLint + Prettier for code quality and formatting
+- ✅ Vitest for testing with TypeScript support
 - ✅ Development and production build scripts
 
 For production deployment, consider implementing proper OAuth 2.1 flows and secure session management.
